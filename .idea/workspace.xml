@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b2399ec8-6230-43f6-9939-2f6c0e767599" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/LICENSE" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/README.md" afterPath="" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="dweetio-client.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -38,10 +38,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="dweet.io.js" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="dweet.io.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../dweet.io/public/client/dweet.io.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="188" column="0" selection-start="3798" selection-end="3798" vertical-scroll-proportion="2.4219003">
+            <state line="188" column="0" selection-start="3798" selection-end="3798" vertical-scroll-proportion="-120.32">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="15" column="5" selection-start="97" selection-end="97" vertical-scroll-proportion="0.18942383">
               <folding />
             </state>
           </provider>
@@ -67,6 +76,7 @@
       <list>
         <option value="$PROJECT_DIR$/dweet.io.js" />
         <option value="$PROJECT_DIR$/test.html" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -244,7 +254,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../dweet.io/public/client/dweet.io.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="188" column="0" selection-start="3798" selection-end="3798" vertical-scroll-proportion="2.4219003">
+        <state line="188" column="0" selection-start="3798" selection-end="3798" vertical-scroll-proportion="-120.32">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="5" selection-start="97" selection-end="97" vertical-scroll-proportion="0.18942383">
           <folding />
         </state>
       </provider>

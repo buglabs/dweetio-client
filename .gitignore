@@ -15,4 +15,6 @@ build
 .grunt
 .idea
 
+*.min.js
+
 node_modules

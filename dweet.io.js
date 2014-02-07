@@ -15,6 +15,7 @@ var request;
 
 var LAST_THING_NAME = "last-thing.dat";
 var DWEET_SERVER = "http://dweet.io";
+var REQUEST_TIMEOUT = 2000;
 var lastThing;
 
 if(isNode)
@@ -189,6 +190,7 @@ var dweetioClient = function()
 				url   : DWEET_SERVER + "/dweet",
 				jar   : true,
 				method: "POST",
+				timeout : REQUEST_TIMEOUT,
 				json  : data
 			}, function(err, response, responseData)
 			{
@@ -218,6 +220,7 @@ var dweetioClient = function()
 			url   : DWEET_SERVER + "/dweet/for/" + thing,
 			jar   : true,
 			method: "POST",
+			timeout: REQUEST_TIMEOUT,
 			json  : data
 		}, function(err, response, responseData)
 		{
@@ -235,6 +238,7 @@ var dweetioClient = function()
 		request({
 			url : DWEET_SERVER + "/get/latest/dweet/for/" + thing,
 			jar : true,
+			timeout: REQUEST_TIMEOUT,
 			json: {}
 		}, function(err, response, responseData)
 		{
@@ -252,6 +256,7 @@ var dweetioClient = function()
 		request({
 			url : DWEET_SERVER + "/get/dweets/for/" + thing,
 			jar : true,
+			timeout: REQUEST_TIMEOUT,
 			json: {}
 		}, function(err, response, responseData)
 		{

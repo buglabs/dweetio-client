@@ -173,6 +173,21 @@ var dweetioClient = function()
 		return err;
 	}
 
+	function isFunction(obj)
+	{
+		return typeof obj === 'function';
+	}
+
+	function createKeyedURL(url, key)
+	{
+		if(key)
+		{
+			return url + (url.indexOf("?") + 1 ? "&" : "?") + "key=" + encodeURIComponent(key);
+		}
+
+		return url;
+	}
+
 	self.set_server = function(server)
 	{
 		DWEET_SERVER = server;
@@ -209,15 +224,22 @@ var dweetioClient = function()
 					}
 				}
 
-				callback(err, normalizeDweets(responseData["with"]));
+				if(callback)
+					callback(err, normalizeDweets(responseData["with"]));
 			});
 		}
 	};
 
-	self.dweet_for = function(thing, data, callback)
+	self.dweet_for = function(thing, data, key, callback)
 	{
+		if(isFunction(key))
+		{
+			callback = key;
+			key = null;
+		}
+
 		request({
-			url   : DWEET_SERVER + "/dweet/for/" + thing,
+			url   : createKeyedURL(DWEET_SERVER + "/dweet/for/" + thing, key),
 			jar   : true,
 			method: "POST",
 			timeout: REQUEST_TIMEOUT,
@@ -229,14 +251,23 @@ var dweetioClient = function()
 				err = processError(responseData);
 			}
 
-			callback(err, normalizeDweets(responseData["with"]));
+			if(callback)
+			{
+				callback(err, normalizeDweets(responseData["with"]));
+			}
 		});
 	}
 
-	self.get_latest_dweet_for = function(thing, callback)
+	self.get_latest_dweet_for = function(thing, key, callback)
 	{
+		if(isFunction(key))
+		{
+			callback = key;
+			key = null;
+		}
+
 		request({
-			url : DWEET_SERVER + "/get/latest/dweet/for/" + thing,
+			url : createKeyedURL(DWEET_SERVER + "/get/latest/dweet/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
 			json: {}
@@ -247,14 +278,23 @@ var dweetioClient = function()
 				err = processError(responseData);
 			}
 
-			callback(err, normalizeDweets(responseData["with"]));
+			if(callback)
+			{
+				callback(err, normalizeDweets(responseData["with"]));
+			}
 		});
 	}
 
-	self.get_all_dweets_for = function(thing, callback)
+	self.get_all_dweets_for = function(thing, key, callback)
 	{
+		if(isFunction(key))
+		{
+			callback = key;
+			key = null;
+		}
+
 		request({
-			url : DWEET_SERVER + "/get/dweets/for/" + thing,
+			url : createKeyedURL(DWEET_SERVER + "/get/dweets/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
 			json: {}
@@ -265,12 +305,21 @@ var dweetioClient = function()
 				err = processError(responseData);
 			}
 
-			callback(err, normalizeDweets(responseData["with"]));
+			if(callback)
+			{
+				callback(err, normalizeDweets(responseData["with"]));
+			}
 		});
 	}
 
-	self.listen_for = function(thing, callback)
+	self.listen_for = function(thing, key, callback)
 	{
+		if(isFunction(key))
+		{
+			callback = key;
+			key = null;
+		}
+
 		// Initialize our callback list
 		if(!listenCallbacks[thing])
 		{
@@ -292,7 +341,7 @@ var dweetioClient = function()
 				// Subscribe to all of the things that we might have asked for before connecting
 				for(var id in listenCallbacks)
 				{
-					socket.emit("subscribe", {thing: id});
+					socket.emit("subscribe", {thing: id, key: key});
 				}
 			});
 

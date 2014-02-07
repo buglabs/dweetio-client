@@ -152,12 +152,4 @@ describe("streaming dweets", function()
 			});
 		});
 	});
-
-	/*describe("#dweetio.stop_listening()", function()
-	{
-		it("should stop hearing dweets", function(done)
-		{
-
-		});
-	});*/
 });

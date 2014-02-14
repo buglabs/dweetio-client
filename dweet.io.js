@@ -14,8 +14,9 @@ var io;
 var request;
 
 var LAST_THING_NAME = "last-thing.dat";
-var DWEET_SERVER = "http://dweet.io";
-var REQUEST_TIMEOUT = 2000;
+var DWEET_SERVER = "https://dweet.io";
+var STRICT_SSL = true;
+var REQUEST_TIMEOUT = 5000;
 var lastThing;
 
 if(isNode)
@@ -188,9 +189,35 @@ var dweetioClient = function()
 		return url;
 	}
 
-	self.set_server = function(server)
+	function processCallback(err, callback, responseData)
+	{
+		if(!err)
+		{
+			err = processError(responseData);
+		}
+
+		if(responseData && responseData["with"])
+		{
+			callback(err, normalizeDweets(responseData["with"]));
+		}
+		else
+		{
+			callback("no response from server", undefined);
+		}
+	}
+
+	self.set_server = function(server, strictSSL)
 	{
 		DWEET_SERVER = server;
+		STRICT_SSL = strictSSL;
+
+		if(isNode)
+		{
+			if(strictSSL)
+				require('https').globalAgent.options.rejectUnauthorized = true;
+			else
+				require('https').globalAgent.options.rejectUnauthorized = false;
+		}
 	}
 
 	self.dweet = function(data, callback)
@@ -206,14 +233,10 @@ var dweetioClient = function()
 				jar   : true,
 				method: "POST",
 				timeout : REQUEST_TIMEOUT,
+				strictSSL : STRICT_SSL,
 				json  : data
 			}, function(err, response, responseData)
 			{
-				if(!err)
-				{
-					err = processError(responseData);
-				}
-
 				if(responseData["with"] && responseData["with"].thing != currentThing)
 				{
 					currentThing = responseData["with"].thing;
@@ -224,8 +247,7 @@ var dweetioClient = function()
 					}
 				}
 
-				if(callback)
-					callback(err, normalizeDweets(responseData["with"]));
+				processCallback(err, callback, responseData);
 			});
 		}
 	};
@@ -243,18 +265,11 @@ var dweetioClient = function()
 			jar   : true,
 			method: "POST",
 			timeout: REQUEST_TIMEOUT,
+			strictSSL: STRICT_SSL,
 			json  : data
 		}, function(err, response, responseData)
 		{
-			if(!err)
-			{
-				err = processError(responseData);
-			}
-
-			if(callback)
-			{
-				callback(err, normalizeDweets(responseData["with"]));
-			}
+			processCallback(err, callback, responseData);
 		});
 	}
 
@@ -270,18 +285,11 @@ var dweetioClient = function()
 			url : createKeyedURL(DWEET_SERVER + "/get/latest/dweet/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
+			strictSSL: STRICT_SSL,
 			json: {}
 		}, function(err, response, responseData)
 		{
-			if(!err)
-			{
-				err = processError(responseData);
-			}
-
-			if(callback)
-			{
-				callback(err, normalizeDweets(responseData["with"]));
-			}
+			processCallback(err, callback, responseData);
 		});
 	}
 
@@ -297,18 +305,11 @@ var dweetioClient = function()
 			url : createKeyedURL(DWEET_SERVER + "/get/dweets/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
+			strictSSL: STRICT_SSL,
 			json: {}
 		}, function(err, response, responseData)
 		{
-			if(!err)
-			{
-				err = processError(responseData);
-			}
-
-			if(callback)
-			{
-				callback(err, normalizeDweets(responseData["with"]));
-			}
+			processCallback(err, callback, responseData);
 		});
 	}
 
@@ -400,6 +401,63 @@ var dweetioClient = function()
 		{
 			socket.emit("unsubscribe", {thing: thing});
 		}
+	}
+
+	self.lock = function(thing, lock, key, callback)
+	{
+		request({
+			url      : DWEET_SERVER + "/lock/" + thing + "?lock=" + lock + "&key=" + key,
+			jar      : true,
+			timeout  : REQUEST_TIMEOUT,
+			strictSSL: STRICT_SSL,
+			json     : {}
+		}, function(err, response, responseData)
+		{
+			if(!err)
+			{
+				err = processError(responseData);
+			}
+
+			callback(err);
+		});
+	}
+
+	self.unlock = function(thing, key, callback)
+	{
+		request({
+			url      : createKeyedURL(DWEET_SERVER + "/unlock/" + thing, key),
+			jar      : true,
+			timeout  : REQUEST_TIMEOUT,
+			strictSSL: STRICT_SSL,
+			json: {}
+		}, function(err, response, responseData)
+		{
+			if(!err)
+			{
+				err = processError(responseData);
+			}
+
+			callback(err);
+		});
+	}
+
+	self.remove_lock = function(lock, key, callback)
+	{
+		request({
+			url      : DWEET_SERVER + "/remove/lock/" + lock + "?key=" + key,
+			jar      : true,
+			timeout  : REQUEST_TIMEOUT,
+			strictSSL: STRICT_SSL,
+			json     : {}
+		}, function(err, response, responseData)
+		{
+			if(!err)
+			{
+				err = processError(responseData);
+			}
+
+			callback(err);
+		});
 	}
 };
 

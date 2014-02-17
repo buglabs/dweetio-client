@@ -133,6 +133,8 @@ dweetio.get_all_dweets_for("my-locked-thing", "my-key", callback);
 dweetio.listen_for("my-locked-thing", "my-key", callback);
 ```
 
+Failure to pass a key or passing an incorrect key for a locked thing will result in an error being returned in the callback.
+
 ### Copyright & License
 
 Copyright © 2013 Jim Heising (https://github.com/jheising)

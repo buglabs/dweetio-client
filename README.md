@@ -121,6 +121,18 @@ dweetio.remove_lock("my-lock", "my-key", function(err){
 });
 ```
 
+Once a thing has been locked, you must pass the key to the lock with any call you make to other functions in this client library. The key will be passed as a parameter before the callback function. For example:
+
+```js
+dweetio.dweet_for("my-locked-thing", {some:"data"}, "my-key", callback);
+
+dweetio.get_latest_dweet_for("my-locked-thing", "my-key", callback);
+
+dweetio.get_all_dweets_for("my-locked-thing", "my-key", callback);
+
+dweetio.listen_for("my-locked-thing", "my-key", callback);
+```
+
 ### Copyright & License
 
 Copyright © 2013 Jim Heising (https://github.com/jheising)

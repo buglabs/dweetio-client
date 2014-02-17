@@ -232,6 +232,7 @@ var dweetioClient = function()
 				url   : DWEET_SERVER + "/dweet",
 				jar   : true,
 				method: "POST",
+				followAllRedirects : true,
 				timeout : REQUEST_TIMEOUT,
 				strictSSL : STRICT_SSL,
 				json  : data
@@ -264,6 +265,7 @@ var dweetioClient = function()
 			url   : createKeyedURL(DWEET_SERVER + "/dweet/for/" + thing, key),
 			jar   : true,
 			method: "POST",
+			followAllRedirects : true,
 			timeout: REQUEST_TIMEOUT,
 			strictSSL: STRICT_SSL,
 			json  : data
@@ -285,6 +287,7 @@ var dweetioClient = function()
 			url : createKeyedURL(DWEET_SERVER + "/get/latest/dweet/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
+			followAllRedirects: true,
 			strictSSL: STRICT_SSL,
 			json: {}
 		}, function(err, response, responseData)
@@ -305,6 +308,7 @@ var dweetioClient = function()
 			url : createKeyedURL(DWEET_SERVER + "/get/dweets/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
+			followAllRedirects: true,
 			strictSSL: STRICT_SSL,
 			json: {}
 		}, function(err, response, responseData)
@@ -409,6 +413,7 @@ var dweetioClient = function()
 			url      : DWEET_SERVER + "/lock/" + thing + "?lock=" + lock + "&key=" + key,
 			jar      : true,
 			timeout  : REQUEST_TIMEOUT,
+			followAllRedirects: true,
 			strictSSL: STRICT_SSL,
 			json     : {}
 		}, function(err, response, responseData)
@@ -428,6 +433,7 @@ var dweetioClient = function()
 			url      : createKeyedURL(DWEET_SERVER + "/unlock/" + thing, key),
 			jar      : true,
 			timeout  : REQUEST_TIMEOUT,
+			followAllRedirects: true,
 			strictSSL: STRICT_SSL,
 			json: {}
 		}, function(err, response, responseData)
@@ -447,6 +453,7 @@ var dweetioClient = function()
 			url      : DWEET_SERVER + "/remove/lock/" + lock + "?key=" + key,
 			jar      : true,
 			timeout  : REQUEST_TIMEOUT,
+			followAllRedirects: true,
 			strictSSL: STRICT_SSL,
 			json     : {}
 		}, function(err, response, responseData)

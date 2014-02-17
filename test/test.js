@@ -58,6 +58,8 @@ function shouldBeError(err)
 
 describe("locked", function()
 {
+	this.timeout(5000);
+
 	describe("#remove_lock()", function()
 	{
 		it("should return any response", function(done)
@@ -131,7 +133,7 @@ describe("locked", function()
 
 	describe("#dweet_for() with a key", function()
 	{
-		it("should return an invalid response", function(done)
+		it("should return a valid response", function(done)
 		{
 			dweetio.dweet_for(mythingID, testData, testKey, function(err, dweet)
 			{
@@ -144,7 +146,7 @@ describe("locked", function()
 
 	describe("#get_latest_dweet_for() with a key", function()
 	{
-		it("should return an invalid response", function(done)
+		it("should return an valid response", function(done)
 		{
 			dweetio.get_latest_dweet_for(mythingID, testKey, function(err, dweets)
 			{
@@ -221,6 +223,8 @@ describe("locked", function()
 
 describe("unlocked", function()
 {
+	this.timeout(5000);
+
 	describe("dweeting", function()
 	{
 		describe("#dweet()", function()

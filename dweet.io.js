@@ -162,11 +162,39 @@ var dweetioClient = function()
 		return dweets;
 	}
 
-	function processError(responseData)
+	function parseBody(body)
+	{
+		var responseData;
+
+		try
+		{
+			if(typeof body == 'string' || body instanceof String)
+			{
+				responseData = JSON.parse(body);
+			}
+			else
+			{
+				responseData = body;
+			}
+		}
+		catch(e)
+		{
+		}
+
+		return responseData;
+	}
+
+	function processError(body)
 	{
 		var err;
 
-		if(responseData && responseData["this"] == "failed")
+		var responseData = parseBody(body);
+
+		if(!responseData)
+		{
+			err = new Error("server returned an invalid response");
+		}
+		else if(responseData["this"] == "failed")
 		{
 			err = new Error(responseData["because"]);
 		}
@@ -189,8 +217,10 @@ var dweetioClient = function()
 		return url;
 	}
 
-	function processCallback(err, callback, responseData)
+	function processCallback(err, callback, body)
 	{
+		var responseData = parseBody(body);
+
 		if(!err)
 		{
 			err = processError(responseData);
@@ -236,8 +266,10 @@ var dweetioClient = function()
 				timeout : REQUEST_TIMEOUT,
 				strictSSL : STRICT_SSL,
 				json  : data
-			}, function(err, response, responseData)
+			}, function(err, response, body)
 			{
+				var responseData = parseBody(body);
+
 				if(responseData["with"] && responseData["with"].thing != currentThing)
 				{
 					currentThing = responseData["with"].thing;
@@ -269,9 +301,9 @@ var dweetioClient = function()
 			timeout: REQUEST_TIMEOUT,
 			strictSSL: STRICT_SSL,
 			json  : data
-		}, function(err, response, responseData)
+		}, function(err, response, body)
 		{
-			processCallback(err, callback, responseData);
+			processCallback(err, callback, body);
 		});
 	}
 
@@ -287,12 +319,10 @@ var dweetioClient = function()
 			url : createKeyedURL(DWEET_SERVER + "/get/latest/dweet/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
-			followAllRedirects: true,
-			strictSSL: STRICT_SSL,
-			json: {}
-		}, function(err, response, responseData)
+			strictSSL: STRICT_SSL
+		}, function(err, response, body)
 		{
-			processCallback(err, callback, responseData);
+			processCallback(err, callback, body);
 		});
 	}
 
@@ -308,12 +338,10 @@ var dweetioClient = function()
 			url : createKeyedURL(DWEET_SERVER + "/get/dweets/for/" + thing, key),
 			jar : true,
 			timeout: REQUEST_TIMEOUT,
-			followAllRedirects: true,
-			strictSSL: STRICT_SSL,
-			json: {}
-		}, function(err, response, responseData)
+			strictSSL: STRICT_SSL
+		}, function(err, response, body)
 		{
-			processCallback(err, callback, responseData);
+			processCallback(err, callback, body);
 		});
 	}
 
@@ -413,14 +441,12 @@ var dweetioClient = function()
 			url      : DWEET_SERVER + "/lock/" + thing + "?lock=" + lock + "&key=" + key,
 			jar      : true,
 			timeout  : REQUEST_TIMEOUT,
-			followAllRedirects: true,
-			strictSSL: STRICT_SSL,
-			json     : {}
-		}, function(err, response, responseData)
+			strictSSL: STRICT_SSL
+		}, function(err, response, body)
 		{
 			if(!err)
 			{
-				err = processError(responseData);
+				err = processError(body);
 			}
 
 			callback(err);
@@ -433,14 +459,12 @@ var dweetioClient = function()
 			url      : createKeyedURL(DWEET_SERVER + "/unlock/" + thing, key),
 			jar      : true,
 			timeout  : REQUEST_TIMEOUT,
-			followAllRedirects: true,
-			strictSSL: STRICT_SSL,
-			json: {}
-		}, function(err, response, responseData)
+			strictSSL: STRICT_SSL
+		}, function(err, response, body)
 		{
 			if(!err)
 			{
-				err = processError(responseData);
+				err = processError(body);
 			}
 
 			callback(err);
@@ -453,14 +477,12 @@ var dweetioClient = function()
 			url      : DWEET_SERVER + "/remove/lock/" + lock + "?key=" + key,
 			jar      : true,
 			timeout  : REQUEST_TIMEOUT,
-			followAllRedirects: true,
-			strictSSL: STRICT_SSL,
-			json     : {}
-		}, function(err, response, responseData)
+			strictSSL: STRICT_SSL
+		}, function(err, response, body)
 		{
 			if(!err)
 			{
-				err = processError(responseData);
+				err = processError(body);
 			}
 
 			callback(err);

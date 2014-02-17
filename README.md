@@ -1,4 +1,4 @@
-# node-dweetio
+# dweet.io Javascript Client
 
 A javascript library for interacting with http://dweet.io — a free, easy-to-use messaging platform for the Internet of Things.
 

@@ -11,9 +11,8 @@ $ npm install node-dweetio --save
 
 ### Use It
 
-```js
-var dweetClient = require("node-dweetio");
-var dweetio = new dweetClient();
+```html
+<script src="dweet.io.js"></script>
 ```
 
 ### Dweeting
@@ -91,6 +90,28 @@ dweetio.stop_listening_for("my-thing");
 Stop listening for dweets from everything.
 ```js
 dweetio.stop_listening();
+```
+
+### Locking & Security
+
+By default, all things are publicly accessible if you know the name of the thing. You can also lock things so that they are only accessible to users with valid security credentials. To purchase locks, visit https://dweet.io/locks. The locks will be emailed to you.
+
+To use purchased locks:
+
+```js
+// To lock a thing
+dweetio.lock("my-thing", "my-lock", "my-key", function(err){
+
+    // If there was a problem, err will be returned, otherwise the lock was successful.
+
+});
+
+// To unlock a thing
+dweetio.unlock("my-thing", "my-key", function(err){
+
+    // If there was a problem, err will be returned, otherwise the lock was successful.
+
+});
 ```
 
 ### Copyright & License

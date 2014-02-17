@@ -112,6 +112,13 @@ dweetio.unlock("my-thing", "my-key", function(err){
     // If there was a problem, err will be returned, otherwise the lock was successful.
 
 });
+
+// To remove a lock no matter what it's attached to
+dweetio.remove_lock("my-lock", "my-key", function(err){
+
+    // If there was a problem, err will be returned, otherwise the lock was successful.
+
+});
 ```
 
 ### Copyright & License

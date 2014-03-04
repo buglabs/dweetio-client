@@ -228,11 +228,11 @@ var dweetioClient = function()
 
 		if(responseData && responseData["with"])
 		{
-			callback(err, normalizeDweets(responseData["with"]));
+			if(callback) callback(err, normalizeDweets(responseData["with"]));
 		}
 		else
 		{
-			callback("no response from server", undefined);
+			if(callback) callback("no response from server", undefined);
 		}
 	}
 

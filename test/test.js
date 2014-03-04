@@ -3,7 +3,7 @@ var dweetIOClient = require("./../dweet.io.js");
 
 var dweetio = new dweetIOClient();
 
-dweetio.set_server(process.env.DWEET_SERVER || "http://localhost:3001", false);
+dweetio.set_server(process.env.DWEET_SERVER || "https://dweet.io", false);
 
 var testData = {
 	hello : "world",

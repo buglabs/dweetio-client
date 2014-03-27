@@ -1,0 +1,11 @@
+{
+    "name": "dweet.io",
+    "version": "0.0.10",
+    "main": "dweet.io.js",
+    "ignore": [
+        ".jshintrc",
+        "**/*.txt",
+        "README.md",
+        "test"
+    ]
+}

@@ -2,17 +2,16 @@
 
 A javascript library for interacting with http://dweet.io — a free, easy-to-use messaging platform for the Internet of Things.
 
-### Installation
-
-via npm:
-```bash
-$ npm install node-dweetio --save
-```
-
 ### Use It
 
 ```html
 <script src="dweet.io.js"></script>
+```
+
+Or from our CDN
+
+```html
+<script src="//dweet.io/client/dweet.io.min.js"></script>
 ```
 
 ### Dweeting

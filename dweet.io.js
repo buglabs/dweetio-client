@@ -449,7 +449,7 @@ var dweetioClient = function()
 				err = processError(body);
 			}
 
-			callback(err);
+			if(callback) callback(err);
 		});
 	}
 
@@ -467,7 +467,7 @@ var dweetioClient = function()
 				err = processError(body);
 			}
 
-			callback(err);
+            if(callback) callback(err);
 		});
 	}
 
@@ -485,7 +485,7 @@ var dweetioClient = function()
 				err = processError(body);
 			}
 
-			callback(err);
+            if(callback) callback(err);
 		});
 	}
 };

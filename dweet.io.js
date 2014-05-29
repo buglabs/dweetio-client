@@ -41,7 +41,6 @@ else
 	{
 		var self = this;
 		var src = options.url + (options.url.indexOf("?") + 1 ? "&" : "?");
-		var head = document.getElementsByTagName("head")[0];
 		var params = [];
 		var param_name = "";
 
@@ -71,7 +70,7 @@ else
 
 		dweet_script_loader(src, function(script)
 		{
-			head.removeChild(script);
+			script.parentNode.removeChild(script);
 			window.dweetCallback[callbackName] = undefined;
 			delete window.dweetCallback[callbackName];
 		});
@@ -81,8 +80,6 @@ else
 
 	(function()
 	{
-		var firstScript = document.getElementsByTagName('script')[0];
-		var scriptHead = firstScript.parentNode;
 		var re = /ded|co/;
 		var onload = 'onload';
 		var onreadystatechange = 'onreadystatechange';
@@ -102,7 +99,7 @@ else
 			};
 			script.async = true;
 			script.src = src;
-			scriptHead.insertBefore(script, firstScript);
+            document.body.appendChild(script);
 		};
 		window.dweet_script_loader = function(srces, fn)
 		{

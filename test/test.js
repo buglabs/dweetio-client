@@ -14,6 +14,7 @@ var mythingID = require("uuid").v4();
 var generatedThing;
 var testLock = process.env.DWEET_LOCK;
 var testKey = process.env.DWEET_KEY;
+var testAlertCondition = "if(dweet.alertValue > 10) return 'TEST: Greater than 10'; if(dweet.alertValue < 10) return 'TEST: Less than 10';";
 
 function checkValidDweetResponse(err, dweet)
 {
@@ -204,6 +205,90 @@ describe("locked", function()
 				});
 
 				sendTestDweet();
+			});
+		});
+	});
+
+	describe("#set an alert", function()
+	{
+		it("should return an valid response", function(done)
+		{
+			dweetio.set_alert(mythingID, ["webmaster@dweet.io", "jim@buglabs.net"], testAlertCondition, testKey, function(err)
+			{
+				shouldBeNoError(err);
+				done();
+			});
+		});
+	});
+
+	describe("#get an alert", function()
+	{
+		it("should return an valid response", function(done)
+		{
+			dweetio.get_alert(mythingID, testKey, function(err, response)
+			{
+				response.condition.should.equal(testAlertCondition);
+				done();
+			});
+		});
+	});
+
+	describe("#dweet our alert data > 10", function()
+	{
+		it("should return a valid response", function(done)
+		{
+			dweetio.dweet_for(mythingID, {alertValue : 11}, testKey, function(err, dweet)
+			{
+				shouldBeNoError(err);
+				done();
+			});
+		});
+	});
+
+	describe("#dweet our alert data < 10", function()
+	{
+		it("should return a valid response", function(done)
+		{
+			dweetio.dweet_for(mythingID, {alertValue : 5}, testKey, function(err, dweet)
+			{
+				shouldBeNoError(err);
+				done();
+			});
+		});
+	});
+
+	describe("#dweet our alert data = 10", function()
+	{
+		it("should return a valid response", function(done)
+		{
+			dweetio.dweet_for(mythingID, {alertValue : 10}, testKey, function(err, dweet)
+			{
+				shouldBeNoError(err);
+				done();
+			});
+		});
+	});
+
+	describe("#remove an alert", function()
+	{
+		it("should return a valid response", function(done)
+		{
+			dweetio.remove_alert(mythingID, testKey, function(err)
+			{
+				shouldBeNoError(err);
+				done();
+			});
+		});
+	});
+
+	describe("#make sure alert is removed", function()
+	{
+		it("should return a 404 response", function(done)
+		{
+			dweetio.get_alert(mythingID, testKey, function(err, response)
+			{
+				shouldBeError(err);
+				done();
 			});
 		});
 	});

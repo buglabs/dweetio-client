@@ -14,7 +14,7 @@
 	var request;
 
 	var LAST_THING_NAME = "last-thing.dat";
-	var DWEET_SERVER = "https://dweet.io";
+	var DWEET_SERVER = "https://dweet.io:443";
 	var STRICT_SSL = true;
 	var REQUEST_TIMEOUT = 5000;
 	var lastThing;
@@ -54,6 +54,7 @@
 				callback(null, data, data);
 			};
 
+			// We're going to load everything with JSONP.
 			params.push("callback=dweetCallback." + callbackName);
 			params.push("_" + "=" + Date.now());
 
@@ -105,6 +106,14 @@
 		})();
 	}
 
+	function isArray(obj) {
+		return Object.prototype.toString.call( obj ) === '[object Array]'
+	}
+
+	function isFunction(obj) {
+		return typeof obj === 'function';
+	}
+
 	var dweetioClient = function () {
 		var self = this;
 		var socket;
@@ -150,7 +159,7 @@
 			return responseData;
 		}
 
-		function processError(body) {
+		function processResponse(body) {
 			var err;
 
 			var responseData = parseBody(body);
@@ -165,10 +174,6 @@
 			return err;
 		}
 
-		function isFunction(obj) {
-			return typeof obj === 'function';
-		}
-
 		function createKeyedURL(url, key) {
 			if (key) {
 				return url + (url.indexOf("?") + 1 ? "&" : "?") + "key=" + encodeURIComponent(key);
@@ -177,11 +182,11 @@
 			return url;
 		}
 
-		function processCallback(err, callback, body) {
+		function processDweetResponse(err, callback, body) {
 			var responseData = parseBody(body);
 
 			if (!err) {
-				err = processError(responseData);
+				err = processResponse(responseData);
 			}
 
 			if (responseData && responseData["with"]) {
@@ -228,7 +233,7 @@
 						}
 					}
 
-					processCallback(err, callback, responseData);
+					processDweetResponse(err, callback, responseData);
 				});
 			}
 		};
@@ -248,7 +253,7 @@
 				strictSSL: STRICT_SSL,
 				json: data
 			}, function (err, response, body) {
-				processCallback(err, callback, body);
+				processDweetResponse(err, callback, body);
 			});
 		}
 
@@ -264,7 +269,7 @@
 				timeout: REQUEST_TIMEOUT,
 				strictSSL: STRICT_SSL
 			}, function (err, response, body) {
-				processCallback(err, callback, body);
+				processDweetResponse(err, callback, body);
 			});
 		}
 
@@ -280,7 +285,7 @@
 				timeout: REQUEST_TIMEOUT,
 				strictSSL: STRICT_SSL
 			}, function (err, response, body) {
-				processCallback(err, callback, body);
+				processDweetResponse(err, callback, body);
 			});
 		}
 
@@ -363,7 +368,7 @@
 				strictSSL: STRICT_SSL
 			}, function (err, response, body) {
 				if (!err) {
-					err = processError(body);
+					err = processResponse(body);
 				}
 
 				if (callback) callback(err);
@@ -378,7 +383,7 @@
 				strictSSL: STRICT_SSL
 			}, function (err, response, body) {
 				if (!err) {
-					err = processError(body);
+					err = processResponse(body);
 				}
 
 				if (callback) callback(err);
@@ -393,7 +398,62 @@
 				strictSSL: STRICT_SSL
 			}, function (err, response, body) {
 				if (!err) {
-					err = processError(body);
+					err = processResponse(body);
+				}
+
+				if (callback) callback(err);
+			});
+		}
+
+		self.set_alert = function(thing, recipients, condition, key, callback)
+		{
+			if(isArray(recipients))
+			{
+				recipients = recipients.join();
+			}
+
+			request({
+				url: createKeyedURL(DWEET_SERVER + "/alert/" + encodeURIComponent(recipients) + "/when/" + thing + "/" + encodeURIComponent(condition), key),
+				jar: true,
+				timeout: REQUEST_TIMEOUT,
+				strictSSL: STRICT_SSL
+			}, function (err, response, body) {
+				if (!err) {
+					err = processResponse(body);
+				}
+
+				if (callback) callback(err);
+			});
+		}
+
+		self.get_alert = function(thing, key, callback)
+		{
+			request({
+				url: createKeyedURL(DWEET_SERVER + "/get/alert/for/" + thing, key),
+				jar: true,
+				timeout: REQUEST_TIMEOUT,
+				strictSSL: STRICT_SSL
+			}, function (err, response, body) {
+				if (!err) {
+					err = processResponse(body);
+				}
+
+				var responseData = parseBody(body);
+
+				if (callback) callback(err, responseData["with"]);
+			});
+		}
+
+		self.remove_alert = function(thing, key, callback)
+		{
+			request({
+				url: DWEET_SERVER + "/remove/alert/for/" + thing + "?key=" + key,
+				jar: true,
+				timeout: REQUEST_TIMEOUT,
+				strictSSL: STRICT_SSL
+			}, function (err, response, body) {
+				if (!err) {
+					err = processResponse(body);
 				}
 
 				if (callback) callback(err);

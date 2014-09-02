@@ -7,7 +7,6 @@
 		"uglify-js": "2.4.x"
 	},
 	"scripts": {
-		"test": "mocha",
 		"build": "uglifyjs dweet.io.js -c -m --source-map dweet.io.min.map -o dweet.io.min.js"
 	},
 	"files": [

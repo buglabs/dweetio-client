@@ -1,3 +1,7 @@
+//     dweet.io.js
+//     http://dweet.io
+//     (c) 2014 Jim Heising and Bug Labs, Inc.
+//     dweet.io.js may be freely distributed under the MIT license.
 (function () {
 
 	var isNode = true;

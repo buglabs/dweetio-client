@@ -15,6 +15,6 @@
 	},
 	"files": [
 		"dweet.io.js",
-		"underscore-min.js"
+		"dweet.io.min.js"
 	]
 }

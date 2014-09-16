@@ -11,7 +11,7 @@
 		"uglify-js": "2.4.x"
 	},
 	"scripts": {
-		"build": "uglifyjs dweet.io.js -c -m --source-map dweet.io.min.map -o dweet.io.min.js"
+		"build": "uglifyjs dweet.io.js -c -m --source-map dweet.io.min.map -o dweet.io.min.js -r \"io\""
 	},
 	"files": [
 		"dweet.io.js",

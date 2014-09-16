@@ -337,6 +337,7 @@
 				}
 				else {
 					dweet_script_loader([DWEET_SERVER + "/socket.io/socket.io.js"], function () {
+						io = window.io;
 						createSocket();
 					});
 				}

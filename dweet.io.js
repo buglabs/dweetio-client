@@ -18,7 +18,7 @@
 	var request;
 
 	var LAST_THING_NAME = "last-thing.dat";
-	var DWEET_SERVER = "https://dweet.io:443";
+	var DWEET_SERVER = "https://taylor.dweet.io:443";
 	var STRICT_SSL = true;
 	var REQUEST_TIMEOUT = 5000;
 	var lastThing;
@@ -291,6 +291,29 @@
 			}, function (err, response, body) {
 				processDweetResponse(err, callback, body);
 			});
+		}
+		
+		self.get_key_for = function (account, thingname, callback) {
+            request({
+                url: createKeyedURL(DWEET_SERVER + "/get/key/for/" + account + '/' + thingname),
+                jar: true,
+                timeout: REQUEST_TIMEOUT,
+                strictSSL: STRICT_SSL
+            }, function (err, response, body) {
+                processDweetResponse(err, callback, body);
+            });
+		}
+		
+		self.get_keys_for_account = function (account, callback) {
+            request({
+                url: createKeyedURL(DWEET_SERVER + "/get/keys/for/" + account),
+                jar: true,
+                timeout: REQUEST_TIMEOUT,
+                strictSSL: STRICT_SSL
+            }, function (err, response, body) {
+                processDweetResponse(err, callback, body);
+            });
+			
 		}
 
 		self.listen_for = function (thing, key, callback) {

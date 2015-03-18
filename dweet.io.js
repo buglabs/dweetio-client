@@ -303,6 +303,17 @@
                 processDweetResponse(err, callback, body);
             });
 		}
+
+		self.create_key_for = function (account, thingname, callback) {
+            request({
+                url: createKeyedURL(DWEET_SERVER + "/create/key/for/" + account + '/' + thingname),
+                jar: true,
+                timeout: REQUEST_TIMEOUT,
+                strictSSL: STRICT_SSL
+            }, function (err, response, body) {
+                processDweetResponse(err, callback, body);
+            });
+		}
 		
 		self.get_keys_for_account = function (account, callback) {
             request({

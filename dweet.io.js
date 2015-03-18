@@ -324,8 +324,19 @@
             }, function (err, response, body) {
                 processDweetResponse(err, callback, body);
             });
-			
 		}
+
+		self.get_keys_for_account = function (account, startPosition, endPosition, callback) {
+            request({
+                url: createKeyedURL(DWEET_SERVER + "/get/keys/for/" + account + '?startPosition=' + startPosition + '&endPosition=' + endPosition),
+                jar: true,
+                timeout: REQUEST_TIMEOUT,
+                strictSSL: STRICT_SSL
+            }, function (err, response, body) {
+                processDweetResponse(err, callback, body);
+            });			
+		}
+
 
 		self.listen_for = function (thing, key, callback) {
 			if (isFunction(key)) {

@@ -387,8 +387,8 @@
 					});
 				}
 			}
-			else if (socket && socket.socket.connected) {
-				socket.emit("subscribe", {thing: thing});
+			if (socket) {
+				socket.emit("subscribe", {thing: thing, key: key});
 			}
 		}
 

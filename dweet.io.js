@@ -192,7 +192,7 @@
 				headers: headers
 			}, function (err, response, body) {
 				if (err) {console.log(err)}
-				if (body) {self.token = body.token}
+				if (body) {self.token = body.GROUP.token}
 				processDweetResponse(err, callback, body);
 			});
 		};

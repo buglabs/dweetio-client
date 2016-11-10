@@ -1,20 +1,23 @@
 {
-	"name": "dweet.io.js",
-	"description": "JavaScript client library for dweet.io.",
-	"homepage": "http://dweet.io",
-	"version": "0.0.13",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/buglabs/dweetio-client.git"
-	},
-	"devDependencies": {
-		"uglify-js": "2.4.x"
-	},
-	"scripts": {
-		"build": "uglifyjs dweet.io.js -c -m --source-map dweet.io.min.map -o dweet.io.min.js -r \"io\""
-	},
-	"files": [
-		"dweet.io.js",
-		"dweet.io.min.js"
-	]
+  "name": "dweet.io.js",
+  "description": "JavaScript client library for dweet.io.",
+  "homepage": "http://dweet.io",
+  "version": "0.0.13",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buglabs/dweetio-client.git"
+  },
+  "devDependencies": {
+    "uglify-js": "2.4.x"
+  },
+  "scripts": {
+    "build": "uglifyjs dweet.io.js -c -m --source-map dweet.io.min.map -o dweet.io.min.js -r \"io\""
+  },
+  "files": [
+    "dweet.io.js",
+    "dweet.io.min.js"
+  ],
+  "dependencies": {
+    "socket.io-client": "^1.5.1"
+  }
 }

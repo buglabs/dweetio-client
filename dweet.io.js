@@ -18,7 +18,7 @@
 	var request;
 
 	var LAST_THING_NAME = "last-thing.dat";
-	var DWEET_SERVER = "https://dweet.io:443";
+	var DWEET_SERVER = "https://beta.dweet.io:443";
 	var STRICT_SSL = true;
 	var REQUEST_TIMEOUT = 5000;
 	var lastThing;
@@ -37,41 +37,25 @@
 	}
 	else {
 		request = function (options, callback) {
-			var self = this;
-			var src = options.url + (options.url.indexOf("?") + 1 ? "&" : "?");
-			var params = [];
-			var param_name = "";
-
-			for (param_name in options.json) {
-				params.push(param_name + "=" + encodeURIComponent(options.json[param_name]));
-			}
-
-			// Generate a unique callbackname
-			var callbackName = "callback";
-			var index = 0;
-			while (window.dweetCallback[callbackName + index]) {
-				index++;
-			}
-
-			callbackName = callbackName + index;
-			window.dweetCallback[callbackName] = function (data) {
-				callback(null, data, data);
-			};
-
-			// We're going to load everything with JSONP.
-			params.push("callback=dweetCallback." + callbackName);
-			params.push("_" + "=" + Date.now());
-
-			src += params.join("&");
-
-			dweet_script_loader(src, function (script) {
-				script.parentNode.removeChild(script);
-				window.dweetCallback[callbackName] = undefined;
-				delete window.dweetCallback[callbackName];
+			var xhr = new XMLHttpRequest();
+			xhr.open(options.method || "GET", options.url);
+			Object.keys(options.headers).forEach(function (key) { // set headers
+				xhr.setRequestHeader(key, options.headers[key]);
 			});
-		};
+			xhr.send(JSON.stringify(options.json));
 
-		window.dweetCallback = {};
+			xhr.onreadystatechange = function () {
+			  var DONE = 4; // readyState 4 means the request is done.
+			  var OK = 200; // status 200 is a successful return.
+			  if (xhr.readyState === DONE) {
+			    if (xhr.status === OK) {
+						callback(null, xhr.response, xhr.responseText);
+			    } else {
+			      console.log('Error: ' + xhr.status); // An error occurred during the request.
+			    }
+			  }
+			};
+		};
 
 		(function () {
 			var re = /ded|co/;
@@ -92,6 +76,7 @@
 				script.src = src;
 				document.body.appendChild(script);
 			};
+
 			window.dweet_script_loader = function (srces, fn) {
 				if (typeof srces == 'string') {
 					load(srces, fn);
@@ -114,11 +99,7 @@
 		return Object.prototype.toString.call( obj ) === '[object Array]'
 	}
 
-	function isFunction(obj) {
-		return typeof obj === 'function';
-	}
-
-	var dweetioClient = function () {
+	var dweetioClient = function (username, password) {
 		var self = this;
 		var socket;
 		var listenCallbacks = {};
@@ -178,17 +159,8 @@
 			return err;
 		}
 
-		function createKeyedURL(url, key) {
-			if (key) {
-				return url + (url.indexOf("?") + 1 ? "&" : "?") + "key=" + encodeURIComponent(key);
-			}
-
-			return url;
-		}
-
 		function processDweetResponse(err, callback, body) {
 			var responseData = parseBody(body);
-
 			if (!err) {
 				err = processResponse(responseData);
 			}
@@ -196,9 +168,56 @@
 			if (responseData && responseData["with"]) {
 				if (callback) callback(err, normalizeDweets(responseData["with"]));
 			}
+			else if (responseData) {
+				if (callback) callback(err, responseData);
+			}
 			else {
 				if (callback) callback("no response from server", undefined);
 			}
+		}
+
+		self.login = function (username, password, callback) {
+			var headers = {"X-DWEET-AUTH": self.token, "Accept": "application/json", "Content-Type": "application/json"};
+			request({
+				method: "POST",
+				url: DWEET_SERVER + "/v2/users/login",
+				json: {
+					"username": username,
+					"password": password
+				},
+				followAllRedirects: true,
+				timeout: REQUEST_TIMEOUT,
+				strictSSL: STRICT_SSL,
+				jar: true,
+				headers: headers
+			}, function (err, response, body) {
+				if (err) {console.log(err)}
+				if (body) {self.token = body.token}
+				processDweetResponse(err, callback, body);
+			});
+		};
+
+		function ensureLogin(callback) {
+			self.token ? callback() : self.login(username, password, callback);
+		}
+
+		function makeRequest(options, callback) {
+			ensureLogin(function () {
+				var headers = {"X-DWEET-AUTH": self.token, "Accept": "application/json", "Content-Type": "application/json"};
+
+				request({
+					method: options.method || "GET",
+					url: DWEET_SERVER + options.url,
+					json: options.data,
+					followAllRedirects: true,
+					timeout: REQUEST_TIMEOUT,
+					strictSSL: STRICT_SSL,
+					jar: true,
+					headers: headers
+				}, options.callback || function (err, response, body) {
+					processDweetResponse(err, callback, body);
+				});
+			});
 		}
 
 		self.set_server = function (server, strictSSL) {
@@ -214,136 +233,107 @@
 		}
 
 		self.dweet = function (data, callback) {
-			if (currentThing) {
-				self.dweet_for(currentThing, data, callback);
-			}
-			else {
-				request({
-					url: DWEET_SERVER + "/dweet",
-					jar: true,
-					method: "POST",
-					followAllRedirects: true,
-					timeout: REQUEST_TIMEOUT,
-					strictSSL: STRICT_SSL,
-					json: data
-				}, function (err, response, body) {
-					var responseData = parseBody(body);
+			makeRequest({url: "/v2/dweets", data: data, method: "POST", callback: function (err, response, body) {
+				var responseData = parseBody(body);
 
-					if (responseData["with"] && responseData["with"].thing != currentThing) {
-						currentThing = responseData["with"].thing;
+				if (responseData["with"] && responseData["with"].thing != currentThing) {
+					currentThing = responseData["with"].thing;
 
-						if (isNode) {
-							require("fs").writeFile(LAST_THING_NAME, currentThing);
-						}
-					}
+					if (isNode) {require("fs").writeFile(LAST_THING_NAME, currentThing);}
+				}
 
-					processDweetResponse(err, callback, responseData);
-				});
-			}
+				processDweetResponse(err, callback, responseData);
+			}});
 		};
 
-		self.dweet_for = function (thing, data, key, callback) {
-			if (isFunction(key)) {
-				callback = key;
-				key = null;
-			}
-
-			request({
-				url: createKeyedURL(DWEET_SERVER + "/dweet/for/" + thing, key),
-				jar: true,
-				method: "POST",
-				followAllRedirects: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL,
-				json: data
-			}, function (err, response, body) {
-				processDweetResponse(err, callback, body);
-			});
-		}
-
 		self.get_latest_dweet_for = function (thing, key, callback) {
-			if (isFunction(key)) {
+			if (typeof key === "function") {
 				callback = key;
 				key = null;
 			}
 
-			request({
-				url: createKeyedURL(DWEET_SERVER + "/get/latest/dweet/for/" + thing, key),
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				processDweetResponse(err, callback, body);
+			makeRequest({url: "/v2/dweets/latest?thing=" + thing + "&key=" + key}, callback);
+		};
+
+		self.get_recent_dweets_for = function (thing, callback) {
+			makeRequest({url: "/v2/dweets?thing=" + thing}, callback);
+		};
+
+		self.get_dweets_for_past_hour_for = function (thing, callback) {
+			makeRequest({url: "/v2/dweets/hour?thing=" + thing}, callback);
+		};
+
+		self.get_all_dweets_for = function (thing, callback) {
+			makeRequest({url: "/v2/dweets/all?thing=" + thing}, callback);
+		};
+
+		self.get_dweets_in_range = function (thing, start, end, callback) {
+			makeRequest({url: "/v2/dweets/range?thing=" + thing + "&from=" + start + "&to=" + (end || Date.now())}, callback);
+		};
+
+		self.get_collection = function (collection, callback) {
+			makeRequest({url: "/v2/collections/recheck?name=" + collection}, callback);
+		};
+
+		self.get_collections = function (callback) {
+			makeRequest({url: "/v2/collections/all"}, callback);
+		};
+
+		self.get_all_locks = function (callback) {
+			makeRequest({url: "/v2/locks/all"}, callback);
+		};
+
+		self.get_locks_count = function (callback) {
+			makeRequest({url: "/v2/locks/count"}, callback);
+		};
+
+		self.get_used_locks = function (callback) {
+			makeRequest({url: "/v2/locks/used"}, callback);
+		};
+
+		self.get_unused_locks = function (callback) {
+			makeRequest({url: "/v2/locks/unused"}, callback);
+		};
+
+		self.get_lock = function (callback) {
+			makeRequest({url: "/v2/lock/one"}, callback);
+		};
+
+		self.lock = function (thing, collection, callback) {
+			self.get_lock(function (err, lock) {
+				makeRequest({url: "/v2/things/lock", method: "PUT", data: {name: thing, lockId: lock.id, collectionname: collection}}, callback);
 			});
-		}
+		};
 
-		self.get_all_dweets_for = function (thing, key, callback) {
-			if (isFunction(key)) {
-				callback = key;
-				key = null;
-			}
+		self.unlock = function (thing, callback) {
+			makeRequest({url: "/v2/things/unlock", method: "PUT", data: {name: thing}}, callback);
+		};
 
-			request({
-				url: createKeyedURL(DWEET_SERVER + "/get/dweets/for/" + thing, key),
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				processDweetResponse(err, callback, body);
-			});
-		}
-		
-		self.get_key_for = function (account, thingname, callback) {
-            request({
-                url: createKeyedURL(DWEET_SERVER + "/get/key/for/" + account + '/' + thingname),
-                jar: true,
-                timeout: REQUEST_TIMEOUT,
-                strictSSL: STRICT_SSL
-            }, function (err, response, body) {
-                processDweetResponse(err, callback, body);
-            });
-		}
+		self.get_thing = function (thing, callback) {
+			makeRequest({url: "/v2/things?name=" + thing}, callback);
+		};
 
-		self.create_key_for = function (account, thingname, callback) {
-            request({
-                url: createKeyedURL(DWEET_SERVER + "/create/key/for/" + account + '/' + thingname),
-                jar: true,
-                timeout: REQUEST_TIMEOUT,
-                strictSSL: STRICT_SSL
-            }, function (err, response, body) {
-                processDweetResponse(err, callback, body);
-            });
-		}
-		
-		self.get_keys_for_account = function (account, callback) {
-            request({
-                url: createKeyedURL(DWEET_SERVER + "/get/keys/for/" + account),
-                jar: true,
-                timeout: REQUEST_TIMEOUT,
-                strictSSL: STRICT_SSL
-            }, function (err, response, body) {
-                processDweetResponse(err, callback, body);
-            });
-		}
+		self.get_all_things = function (callback) {
+			makeRequest({url: "/v2/things/all"}, callback);
+		};
 
-		self.get_keys_for_account = function (account, startPosition, endPosition, callback) {
-            request({
-                url: createKeyedURL(DWEET_SERVER + "/get/keys/for/" + account + '?startPosition=' + startPosition + '&endPosition=' + endPosition),
-                jar: true,
-                timeout: REQUEST_TIMEOUT,
-                strictSSL: STRICT_SSL
-            }, function (err, response, body) {
-                processDweetResponse(err, callback, body);
-            });			
-		}
+		self.get_things_in_collection = function (collection, callback) {
+			makeRequest({url: "/v2/things/collection?collection=" + collection}, callback);
+		};
 
+		self.get_count_in_collection = function (collection, callback) {
+			makeRequest({url: "/v2/things/count?collection=" + collection}, callback);
+		};
+
+		self.find_things_like = function (query, callback) {
+			makeRequest({url: "/v2/things/find?like=" + query}, callback);
+		};
+
+		self.search = function (query, callback) {
+			makeRequest({url: "/v2/things/search-all?search=" + query}, callback);
+		};
 
 		self.listen_for = function (thing, key, callback) {
-			if (isFunction(key)) {
-				callback = key;
-				key = null;
-			}
-
 			// Initialize our callback list
 			if (!listenCallbacks[thing]) {
 				listenCallbacks[thing] = [];
@@ -355,19 +345,20 @@
 			}
 
 			function createSocket() {
-				socket = io.connect(DWEET_SERVER + "/stream");
+				socket = io.connect(DWEET_SERVER + "/v2/stream");
 
-				socket.on("connect", function () {
-					// Subscribe to all of the things that we might have asked for before connecting
-					for (var id in listenCallbacks) {
-						socket.emit("subscribe", {thing: id, key: key});
-					}
-				});
+				ensureLogin(function () {
+					socket.on("connect", function () {
+						// Subscribe to all of the things that we might have asked for before connecting
+						for (var id in listenCallbacks) {
+							socket.emit("subscribe", {thing: id, key: key, token: self.token});
+						}
+					});
+				});					
 
 				socket.on("new_dweet", function (msg) {
 					if (listenCallbacks[msg.thing]) {
 						normalizeDweets(msg);
-
 						var callbacks = listenCallbacks[msg.thing];
 						for (var index = 0; index < callbacks.length; index++) {
 							callbacks[index](msg);
@@ -388,7 +379,7 @@
 				}
 			}
 			if (socket) {
-				socket.emit("subscribe", {thing: thing, key: key});
+				socket.emit("subscribe", {thing: thing, key: key, token: self.token});
 			}
 		}
 
@@ -410,105 +401,47 @@
 			}
 		}
 
-		self.lock = function (thing, lock, key, callback) {
-			request({
-				url: DWEET_SERVER + "/lock/" + thing + "?lock=" + lock + "&key=" + key,
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				if (!err) {
-					err = processResponse(body);
+		self.set_alert = function (options, callback) {
+			if (!isArray(options.recipients)) {options.recipients = [options.recipients];} //recipients must always be an array
+
+			makeRequest({
+				url: "/v2/alerts",
+				method: "POST",
+				data: {
+					thing: options.thing,
+					name: options.name,
+					recipients: options.recipients,
+					condition: options.condition
 				}
+			}, callback);
+		};
 
-				if (callback) callback(err);
-			});
-		}
+		self.get_alert = function (thing, callback) {
+			makeRequest({url: "/v2/alerts?thing=" + thing}, callback);
+		};
 
-		self.unlock = function (thing, key, callback) {
-			request({
-				url: createKeyedURL(DWEET_SERVER + "/unlock/" + thing, key),
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				if (!err) {
-					err = processResponse(body);
+		self.get_alert_in_range = function (thing, start, end, callback) {
+			makeRequest({url: "/v2/alerts/range?thing=" + thing + "&from=" + start + "&to=" + end}, callback);
+		};
+
+		self.get_all_alerts = function (callback) {
+			makeRequest({url: "/v2/alerts/all"}, callback);
+		};
+
+		self.get_all_alerts_in_range = function (start, end, callback) {
+			makeRequest({url: "/v2/alerts/range/all?from=" + start + "&to=" + end}, callback);
+		};
+
+		self.remove_alert = function(thing, name, callback) {
+			makeRequest({
+				url: "/v2/alerts",
+				method: "DELETE",
+				data: {
+					thing: thing,
+					name: name
 				}
-
-				if (callback) callback(err);
-			});
-		}
-
-		self.remove_lock = function (lock, key, callback) {
-			request({
-				url: DWEET_SERVER + "/remove/lock/" + lock + "?key=" + key,
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				if (!err) {
-					err = processResponse(body);
-				}
-
-				if (callback) callback(err);
-			});
-		}
-
-		self.set_alert = function(thing, recipients, condition, key, callback)
-		{
-			if(isArray(recipients))
-			{
-				recipients = recipients.join();
-			}
-
-			request({
-				url: createKeyedURL(DWEET_SERVER + "/alert/" + encodeURIComponent(recipients) + "/when/" + thing + "/" + encodeURIComponent(condition), key),
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				if (!err) {
-					err = processResponse(body);
-				}
-
-				if (callback) callback(err);
-			});
-		}
-
-		self.get_alert = function(thing, key, callback)
-		{
-			request({
-				url: createKeyedURL(DWEET_SERVER + "/get/alert/for/" + thing, key),
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				if (!err) {
-					err = processResponse(body);
-				}
-
-				var responseData = parseBody(body);
-
-				if (callback) callback(err, responseData["with"]);
-			});
-		}
-
-		self.remove_alert = function(thing, key, callback)
-		{
-			request({
-				url: DWEET_SERVER + "/remove/alert/for/" + thing + "?key=" + key,
-				jar: true,
-				timeout: REQUEST_TIMEOUT,
-				strictSSL: STRICT_SSL
-			}, function (err, response, body) {
-				if (!err) {
-					err = processResponse(body);
-				}
-
-				if (callback) callback(err);
-			});
-		}
+			}, callback);
+		};
 	};
 
 	if (isNode) {
